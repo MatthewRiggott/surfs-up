@@ -2,6 +2,8 @@
 source "https://rubygems.org"
 
 # gem "rails"
-gem 'httparty'
 gem 'pry'
 gem 'dotenv'
+gem 'mechanize'
+gem 'nokogiri'
+gem 'HTTParty'
