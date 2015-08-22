@@ -35,7 +35,7 @@ module Constant
     "6am",
     "9am",
     "Noon",
-    '12pm',
+    "12pm",
     "3pm",
     "6pm"
   ]

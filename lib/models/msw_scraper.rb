@@ -21,6 +21,7 @@ class MswScraper
     sub_regions = region_info.links.select { |l| l.text =~ /a*\s\d+\sspots/ }
     sub_region_links = sub_regions.map { |l| build_url("forecast" + l.uri.path) }
     sub_region_links.each do |link|
+      unless @
       sub_region_name = beach_name(link)
       @full_data[sub_region_name] = Hash.new
       @full_data[sub_region_name]["url"] = link
@@ -81,9 +82,9 @@ class MswScraper
           # convert meters to feet if needed
           delta = unit == "ft" ? 1.0 : 3.28
           range = data[index+1].gsub(/[a-zA-Z]/, '')
-          minimum = (range.gsub(/-.*/, '')).to_f * delta
-          maximum = (range.gsub(/.*-/, '')).to_f * delta
-          average = (data[index+2][/(.*)\d/, 0]).to_f * delta
+          minimum = ((range.gsub(/-.*/, '')).to_f * delta).round(1)
+          maximum = ((range.gsub(/.*-/, '')).to_f * delta).round(1)
+          average = ((data[index+2][/(.*)\d/, 0]).to_f * delta).round(1)
           parsed_data[current_key][item] = {
             min: minimum,
             max: maximum,
