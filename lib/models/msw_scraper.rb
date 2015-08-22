@@ -50,7 +50,6 @@ class MswScraper
           end
         end
       end
-      binding.pry
     end
   end
 
