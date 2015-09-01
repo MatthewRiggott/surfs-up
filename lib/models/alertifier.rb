@@ -3,16 +3,10 @@ require_relative 'alert_config'
 class Alertifier
   include AlertConfig
 
-  def initialize(threshold = 1)
+  def initialize()
     @alerts = Hash.new
-    @conditions = Hash.new
-    alert_levels.each do |level, condition|
-      if level >= threshold
-        @conditions[level] = condition
-      end
-    end
-    @max_level = @conditions.keys.max
-    @threshold = threshold
+    @today = Date.today.to_s
+    @condition_count = alert_levels.keys.size
   end
 
   def scan_data(beach, data)
@@ -29,23 +23,29 @@ class Alertifier
 
   # want to return highest alert possible
   def check_for_alerts(intervals)
-    min = @threshold
+    count = Array.new(@condition_count) { |i| 0 }
     alert = nil
-    conditions = @conditions[min]
-    intervals.each do |time, swell_info|
-      recent = false
-      conditions.each do |type, value|
-        if swell_info[type] >= value
-          alert = min
-          recent = true
-          min += 1
-          return alert if min > @max_level
-          conditions = @conditions[min]
-          break
-        end
+    max = 0
+    alert_conditions.each do |strength, condtions|
+      intervals.each do |time, swell_info|
+        swell_info[type] >= value
+        alert = min
+        recent = true
+        min += 1
       end
-      redo if recent
     end
     alert
+  end
+
+  def check_conditions(swell_info, strength)
+    if strength == @condition_count - 1
+      strength - 1
+    else
+      alert_conditions[strength].each do |type, value|
+
+
+      end
+    end
+
   end
 end

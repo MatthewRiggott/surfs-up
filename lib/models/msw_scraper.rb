@@ -5,13 +5,12 @@ require_relative 'alertifier'
 
 class MswScraper
   include Constant
+  attr_reader :full_data
 
   def initialize(region = new_england)
     @url_base = "http://www.magicseaweed.com"
     @scrape_url = build_url(region)
-    @beach_urls = Array.new
     @full_data = Hash.new
-    alertifier = Alertifier.new
   end
 
   def scrape_region
@@ -21,16 +20,16 @@ class MswScraper
     sub_regions = region_info.links.select { |l| l.text =~ /a*\s\d+\sspots/ }
     sub_region_links = sub_regions.map { |l| build_url("forecast" + l.uri.path) }
     sub_region_links.each do |link|
-      unless @
       sub_region_name = beach_name(link)
       @full_data[sub_region_name] = Hash.new
       @full_data[sub_region_name]["url"] = link
       sub_beaches = generate_surfcast_urls(mech.get(link).links)
       sub_beaches.each do |beach_link|
-        @beach_urls << beach_link
-        name = beach_name(beach_link)
-        @full_data[sub_region_name][name] = Hash.new
-        @full_data[sub_region_name][name]["url"] = beach_link
+        unless beach_link == "http://www.magicseaweed.com/New-England-Hurricane-Surf-Report/1095/"
+          name = beach_name(beach_link)
+          @full_data[sub_region_name][name] = Hash.new
+          @full_data[sub_region_name][name]["url"] = beach_link
+        end
       end
       sleep 2
     end
@@ -85,10 +84,12 @@ class MswScraper
           minimum = ((range.gsub(/-.*/, '')).to_f * delta).round(1)
           maximum = ((range.gsub(/.*-/, '')).to_f * delta).round(1)
           average = ((data[index+2][/(.*)\d/, 0]).to_f * delta).round(1)
+          period = data[index+3].chop.to_f.round(1)
           parsed_data[current_key][item] = {
             min: minimum,
             max: maximum,
             average: average,
+            period: period,
             unit: unit
           }
 

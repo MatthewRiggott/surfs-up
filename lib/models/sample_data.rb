@@ -1,11 +1,22 @@
 module SampleData
 
   def self.regional_data
-    full_data["Maine North Surfing"]
+    key1 = full_data.keys.sample
+    full_data[key1]
   end
 
   def self.beach_data
-    full_data["New Hampshire Surfing"]["Hampton Beach"]
+    key1 = full_data.keys.sample
+    key2 = full_data[key1].keys.sample
+    full_data[key1][key2]
+  end
+
+  def count_data(region_hash)
+    count = 0
+    region_hash.each do |sub_region, beach|
+      count += beach.keys.size - 1
+    end
+    count
   end
 
   # full_data/region/beach/data/date/time = data_hash with keys min,max,average,unit
