@@ -16,7 +16,6 @@ class Mailer
       user_name: ENV["GMAIL_ID"],
       password: ENV["GMAIL_PASSWORD"]
     }
-
     Mail.defaults do
       delivery_method :smtp, default_settings
     end
