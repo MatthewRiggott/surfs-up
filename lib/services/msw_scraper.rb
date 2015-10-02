@@ -1,7 +1,8 @@
+
+require 'pry'
 require 'mechanize'
 require 'nokogiri'
 require_relative 'constant'
-require_relative 'alertifier'
 
 class MswScraper
   include Constant
@@ -15,6 +16,8 @@ class MswScraper
 
   def scrape_region
     mech = Mechanize.new
+
+    # just browsing the site like normal on my macbook ...
     mech.user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36'
     region_info = mech.get(@scrape_url)
     sub_regions = region_info.links.select { |l| l.text =~ /a*\s\d+\sspots/ }
@@ -22,13 +25,17 @@ class MswScraper
     sub_region_links.each do |link|
       sub_region_name = beach_name(link)
       @full_data[sub_region_name] = Hash.new
+      @full_data[sub_region_name]["id"] = get_id(link)
       @full_data[sub_region_name]["url"] = link
       sub_beaches = generate_surfcast_urls(mech.get(link).links)
       sub_beaches.each do |beach_link|
+
+        # unless you want to surf in the center on the atlantic, lets just not save this guy
         unless beach_link == "http://www.magicseaweed.com/New-England-Hurricane-Surf-Report/1095/"
           name = beach_name(beach_link)
           @full_data[sub_region_name][name] = Hash.new
           @full_data[sub_region_name][name]["url"] = beach_link
+          @full_data[sub_region_name][name]["id"] = get_id(beach_link)
         end
       end
       sleep 2
@@ -37,7 +44,7 @@ class MswScraper
     @full_data.each do |region, value|
       if value.class == Hash
         value.each do |beach, beach_info|
-          if beach != "url"
+          if beach != "url" && beach != "id"
             begin
               page = mech.get(beach_info["url"]).root.text
               data = parse_page(page)
@@ -55,6 +62,10 @@ class MswScraper
 
   private
 
+  def get_id(link)
+    (link.reverse.match('\d+')[0]).reverse if link.reverse.match('\d+')
+  end
+
   def beach_name(link)
     if link =~ /forecast/
       (link[/forecast\/(.+)\/\d{1,5}/, 1]).gsub("-", " ")
@@ -70,12 +81,13 @@ class MswScraper
     current_key = nil
     count = 0
     data.each_with_index do |item, index|
+      # regexes to match content to a day
       if item =~ /\d\d\/\d{1,2}/
         current_key = item
         count += 1
         break if count == 11
-        parsed_data[current_key] = {}
-      elsif item =~ /\d{1,2}[ap]m/
+        parsed_data[current_key] ||= {}
+      elsif item =~ /\d{1,2}[ap]m/ || item == "Noon"
         if surftimes.include? item
           unit =  data[index+2][/[a-zA-Z]{1,2}/, 0]
           # convert meters to feet if needed
@@ -92,7 +104,6 @@ class MswScraper
             period: period,
             unit: unit
           }
-
         end
       end
     end

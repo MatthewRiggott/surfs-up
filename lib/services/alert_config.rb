@@ -1,6 +1,6 @@
 module AlertConfig
 
-    def alert_levels
+  def alert_levels
     {
       0=> {
         min: 2.0,
@@ -22,6 +22,10 @@ module AlertConfig
         average: 5.0
       }
     }
+  end
+
+  def criteria_types
+    alert_levels[0].keys
   end
 
 end
